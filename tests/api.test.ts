@@ -471,3 +471,33 @@ describe('dezenas por bolão e Pix', () => {
     assert.equal(pub.body.games[0].tier, 'quina');
   });
 });
+
+describe('ordem da lista de jogos', () => {
+  test('agrupa por participante (nome com acento/maiúscula) e mantém a ordem de criação; igual para visitantes', async () => {
+    const p = await admin.req('POST', '/api/admin/pools', { name: 'Ordem', contestNumber: 9200, drawDate: '2027-03-01', priceCents: 100, maxGamesPerParticipant: 3 });
+    const poolId = p.body.id;
+    const players: Record<string, Client> = {};
+    for (const [nick, name] of [['zeca', 'Zeca'], ['alvaro', 'Álvaro'], ['bruna', 'bruna']]) {
+      const inv = await admin.req('POST', '/api/admin/invites', { poolId, days: 7 });
+      const c = new Client(app);
+      await c.req('POST', '/api/invites/accept', { token: inv.body.token, nickname: nick, displayName: name, password: `senha-${nick}-123` });
+      players[nick] = c;
+    }
+    // Jogos intercalados entre as pessoas, para garantir que a ordem não é a de criação geral.
+    const plan: [string, number[]][] = [
+      ['zeca', [1, 2, 3, 4, 5, 6]], ['alvaro', [50, 51, 52, 53, 54, 55]], ['bruna', [7, 8, 9, 10, 11, 12]],
+      ['alvaro', [10, 20, 30, 40, 50, 60]], ['zeca', [13, 14, 15, 16, 17, 18]],
+    ];
+    const codes: Record<string, string[]> = { zeca: [], alvaro: [], bruna: [] };
+    for (const [nick, numbers] of plan) {
+      const r = await players[nick].req('POST', `/api/me/pools/${poolId}/games`, { numbers });
+      codes[nick].push(r.body.code);
+    }
+    const logged = (await players.bruna.req('GET', `/api/public/pools/${poolId}`)).body.games as Json[];
+    assert.deepEqual(logged.map((g) => g.owner), ['Álvaro', 'Álvaro', 'bruna', 'Zeca', 'Zeca']);
+    assert.deepEqual(logged.map((g) => g.code), [...codes.alvaro, ...codes.bruna, ...codes.zeca]);
+    const anonGames = (await anon.req('GET', `/api/public/pools/${poolId}`)).body.games as Json[];
+    assert.deepEqual(anonGames.map((g) => g.code), logged.map((g) => g.code));
+    assert.ok(anonGames.every((g) => g.owner === undefined));
+  });
+});

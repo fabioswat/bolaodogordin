@@ -4,7 +4,7 @@
 - Pagamento via Pix: o admin cadastra chave, nome e cidade no bolão; em "Meus jogos" o participante vê QR Code e Pix copia e cola com o valor exato que falta pagar (BR Code estático, padrão do Banco Central). A confirmação continua manual. No campo da chave dá para colar um Pix copia e cola (ex.: do Mercado Pago): chave, nome e cidade são preenchidos sozinhos. O cartão mostra só o valor, quem recebe e a instituição (campo opcional), o QR Code e o copia e cola.
 - Dezenas por jogo configuráveis por bolão (6 a 20); só pode mudar enquanto não houver jogos. O resultado continua com 6 dezenas.
 - Botão "Surpresinha": preenche o volante com dezenas aleatórias que ainda não foram usadas no bolão.
-- Tabela de jogos da página principal com 10 jogos por página.
+- Tabela de jogos da página principal com 10 jogos por página. Ordenada pelo nome do participante (os jogos de cada pessoa ficam juntos, na ordem em que foram feitos); com resultado, mais acertos primeiro.
 - Rodapé com os créditos (Gordin da SBM e Claudinho) e a versão do sistema, lida do package.json no build.
 - Configurações do bolão: confirmação "Alterações salvas" (e erros) ao lado do botão; quantidade de dezenas travada aparece com cadeado e explicação.
 

@@ -229,8 +229,12 @@ export function setPayment(db: DB, actorId: number, poolId: number, userId: numb
 /** showOwners: inclui o nome de quem cadastrou cada jogo (só para participantes logados do bolão e admin). */
 export function publicPoolView(db: DB, poolId: number, showOwners = false) {
   const pool = getPool(db, poolId);
-  const rows = db.prepare(`SELECT g.public_code, g.numbers, u.display_name FROM games g JOIN users u ON u.id = g.user_id
-    WHERE g.pool_id = ? AND g.status = 'active' ORDER BY g.numbers`).all(poolId);
+  // Ordem: nome do participante (com acentos, sem diferenciar maiúsculas) e, dentro dele, a ordem em que os jogos
+  // foram feitos — os jogos de cada pessoa ficam juntos, mesmo para visitantes (que não veem o nome).
+  const collator = new Intl.Collator('pt-BR', { sensitivity: 'base', numeric: true });
+  const rows = db.prepare(`SELECT g.public_code, g.numbers, g.user_id, u.display_name FROM games g JOIN users u ON u.id = g.user_id
+    WHERE g.pool_id = ? AND g.status = 'active' ORDER BY g.created_at, g.id`).all(poolId)
+    .sort((a, b) => collator.compare(String(a.display_name), String(b.display_name)) || Number(a.user_id) - Number(b.user_id));
   const tiers = { quadra: 0, quina: 0, sena: 0 };
   const games = rows.map((r) => {
     const numbers = parseCombination(String(r.numbers));
@@ -242,6 +246,7 @@ export function publicPoolView(db: DB, poolId: number, showOwners = false) {
     if (showOwners) game.owner = String(r.display_name);
     return game;
   });
+  // Com resultado, mais acertos primeiro (a ordenação é estável: o nome continua como desempate).
   if (pool.result) games.sort((a, b) => (b.hits ?? 0) - (a.hits ?? 0));
   return {
     pool: {
