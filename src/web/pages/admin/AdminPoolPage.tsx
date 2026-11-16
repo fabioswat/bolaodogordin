@@ -53,7 +53,7 @@ export function AdminPoolPage({ poolId }: { poolId: number }) {
             <PoolStatusBadge status={pool.status} />
           </div>
           <p className="text-sm text-slate-500">
-            Concurso {pool.contestNumber} · sorteio {formatDate(pool.drawDate)} · {formatCents(pool.priceCents)} por jogo · até {pool.maxGamesPerParticipant} jogo(s) por participante
+            Concurso {pool.contestNumber} · sorteio {formatDate(pool.drawDate)} · {formatCents(pool.priceCents)} por jogo · {pool.numbersPerGame} dezenas · até {pool.maxGamesPerParticipant} jogo(s) por participante
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -87,7 +87,7 @@ export function AdminPoolPage({ poolId }: { poolId: number }) {
       {tab === 'resultado' && <ResultTab pool={pool} onChanged={reload} />}
       {tab === 'config' && (
         <section className="card p-5">
-          <PoolForm initial={pool} submitLabel="Salvar alterações" onSubmit={async (v) => {
+          <PoolForm initial={pool} lockNumbers={pool.stats.games > 0} submitLabel="Salvar alterações" onSubmit={async (v) => {
             await put(`/api/admin/pools/${pool.id}`, v);
             setFlash('Bolão atualizado.');
             reload();
@@ -317,13 +317,13 @@ function GamesTab({ pool, onChanged }: { pool: AdminPool; onChanged: () => void 
         </div>
       )}
 
-      {editing && <EditGameModal game={editing} onClose={() => setEditing(null)} onDone={() => done('Jogo atualizado.')} />}
+      {editing && <EditGameModal game={editing} count={pool.numbersPerGame} onClose={() => setEditing(null)} onDone={() => done('Jogo atualizado.')} />}
       {deleting && <DeleteGameModal game={deleting} onClose={() => setDeleting(null)} onDone={() => done('Jogo excluído.')} />}
     </section>
   );
 }
 
-function EditGameModal({ game, onClose, onDone }: { game: AdminGame; onClose: () => void; onDone: () => void }) {
+function EditGameModal({ game, count, onClose, onDone }: { game: AdminGame; count: number; onClose: () => void; onDone: () => void }) {
   const [numbers, setNumbers] = useState(game.numbers);
   const [reason, setReason] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -343,12 +343,12 @@ function EditGameModal({ game, onClose, onDone }: { game: AdminGame; onClose: ()
     <Modal title={`Editar jogo ${game.code} (${game.ownerNickname})`} onClose={onClose}>
       <div className="space-y-4">
         {error && <Alert>{error}</Alert>}
-        <NumberPicker value={numbers} onChange={setNumbers} />
+        <NumberPicker value={numbers} onChange={setNumbers} count={count} />
         <div>
           <label className="label" htmlFor="eg-reason">Motivo (opcional, fica no histórico)</label>
           <input id="eg-reason" className="input" maxLength={300} value={reason} onChange={(e) => setReason(e.target.value)} />
         </div>
-        <button className="btn btn-primary w-full" disabled={numbers.length !== NUMBERS_PER_GAME || busy} onClick={save}>Salvar</button>
+        <button className="btn btn-primary w-full" disabled={numbers.length !== count || busy} onClick={save}>Salvar</button>
       </div>
     </Modal>
   );

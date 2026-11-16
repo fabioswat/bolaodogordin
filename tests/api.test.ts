@@ -415,3 +415,57 @@ describe('exclusão de usuário', () => {
     assert.equal((await cl.req('POST', `/api/me/pools/${pool2}/games`, { numbers: jogo })).status, 201, 'combinação liberada');
   });
 });
+
+describe('dezenas por bolão e Pix', () => {
+  let pool8: number, c: Client, uid: number;
+
+  test('admin cria bolão de 8 dezenas com Pix; chave inválida é recusada', async () => {
+    const base = { name: 'Bolão 8 dezenas', contestNumber: 9100, drawDate: '2027-02-01', priceCents: 600, maxGamesPerParticipant: 3 };
+    assert.equal((await admin.req('POST', '/api/admin/pools', { ...base, numbersPerGame: 21 })).status, 400);
+    assert.equal((await admin.req('POST', '/api/admin/pools', { ...base, numbersPerGame: 8, pixKey: '11 99999-8888', pixName: 'X', pixCity: 'Y' })).status, 400);
+    assert.equal((await admin.req('POST', '/api/admin/pools', { ...base, numbersPerGame: 8, pixKey: 'gordin@exemplo.com' })).status, 400, 'exige nome e cidade');
+    const r = await admin.req('POST', '/api/admin/pools', { ...base, numbersPerGame: 8, pixKey: 'Gordin@Exemplo.com', pixName: 'Gordin da Silva', pixCity: 'Campinas' });
+    assert.equal(r.status, 201, JSON.stringify(r.body));
+    pool8 = r.body.id;
+    assert.equal(r.body.numbersPerGame, 8);
+    assert.equal(r.body.pixKey, 'gordin@exemplo.com');
+    const inv = await admin.req('POST', '/api/admin/invites', { poolId: pool8, days: 7 });
+    c = new Client(app);
+    const acc = await c.req('POST', '/api/invites/accept', { token: inv.body.token, nickname: 'oito', displayName: 'Oito', password: 'senha-oito-123' });
+    uid = acc.body.user.id;
+  });
+
+  test('jogo precisa ter a quantidade do bolão', async () => {
+    assert.equal((await c.req('POST', `/api/me/pools/${pool8}/games`, { numbers: [1, 2, 3, 4, 5, 6] })).status, 400);
+    assert.equal((await c.req('POST', `/api/me/pools/${pool8}/games`, { numbers: [1, 2, 3, 4, 5, 6, 7, 8] })).status, 201);
+    assert.equal((await c.req('POST', `/api/me/pools/${pool8}/games`, { numbers: [8, 7, 6, 5, 4, 3, 2, 1] })).status, 409, 'duplicado');
+    const pub = await anon.req('GET', `/api/public/pools/${pool8}`);
+    assert.equal(pub.body.pool.numbersPerGame, 8);
+    assert.equal(pub.body.games[0].numbers.length, 8);
+  });
+
+  test('Pix do participante tem o valor pendente e some quando pago', async () => {
+    let me = ((await c.req('GET', '/api/me/pools')).body as Json[]).find((p) => p.id === pool8)!;
+    assert.equal(me.pix.amountCents, 600);
+    assert.ok(me.pix.payload.includes('br.gov.bcb.pix0118gordin@exemplo.com'));
+    assert.ok(me.pix.payload.includes('54046.00'));
+    assert.ok(me.pix.payload.includes(`BOLAO${pool8}U${uid}`));
+    await admin.req('POST', `/api/admin/pools/${pool8}/members/${uid}/payment`, { status: 'paid' });
+    me = ((await c.req('GET', '/api/me/pools')).body as Json[]).find((p) => p.id === pool8)!;
+    assert.equal(me.pix, null);
+    assert.equal(me.pixConfigured, true);
+  });
+
+  test('não muda a quantidade de dezenas com jogos; resultado continua com 6', async () => {
+    const pool = (await admin.req('GET', `/api/admin/pools/${pool8}`)).body;
+    const body = { name: pool.name, contestNumber: pool.contestNumber, drawDate: pool.drawDate, priceCents: pool.priceCents,
+      maxGamesPerParticipant: pool.maxGamesPerParticipant, pixKey: pool.pixKey, pixName: pool.pixName, pixCity: pool.pixCity };
+    assert.equal((await admin.req('PUT', `/api/admin/pools/${pool8}`, { ...body, numbersPerGame: 10 })).status, 409);
+    assert.equal((await admin.req('PUT', `/api/admin/pools/${pool8}`, { ...body, numbersPerGame: 8, pixKey: '' })).status, 200, 'pode remover o Pix');
+    assert.equal((await admin.req('PUT', `/api/admin/pools/${pool8}/result`, { numbers: [1, 2, 3, 4, 5, 6, 7, 8] })).status, 400);
+    assert.equal((await admin.req('PUT', `/api/admin/pools/${pool8}/result`, { numbers: [1, 2, 3, 4, 5, 9] })).status, 200);
+    const pub = await anon.req('GET', `/api/public/pools/${pool8}`);
+    assert.equal(pub.body.games[0].hits, 5);
+    assert.equal(pub.body.games[0].tier, 'quina');
+  });
+});

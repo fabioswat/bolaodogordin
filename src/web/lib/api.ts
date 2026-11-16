@@ -79,7 +79,7 @@ export interface PublicGame {
 }
 
 export interface PublicPool {
-  pool: PoolSummary & { priceCents: number; maxGamesPerParticipant: number; result: number[] | null };
+  pool: PoolSummary & { priceCents: number; maxGamesPerParticipant: number; numbersPerGame: number; result: number[] | null };
   stats: PoolStats;
   tiers: { quadra: number; quina: number; sena: number };
   showOwners: boolean;
@@ -89,6 +89,10 @@ export interface PublicPool {
 export interface MyPool extends PoolSummary {
   priceCents: number;
   maxGamesPerParticipant: number;
+  numbersPerGame: number;
+  pixConfigured: boolean;
+  /** Pix com o valor pendente; null se não houver chave ou nada a pagar. */
+  pix: { amountCents: number; payload: string } | null;
   result: number[] | null;
   games: number;
   dueCents: number;
@@ -109,6 +113,10 @@ export interface MyGame {
 export interface AdminPool extends PoolSummary {
   priceCents: number;
   maxGamesPerParticipant: number;
+  numbersPerGame: number;
+  pixKey: string | null;
+  pixName: string | null;
+  pixCity: string | null;
   result: number[] | null;
   resultRegisteredAt: string | null;
   stats: PoolStats;

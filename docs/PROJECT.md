@@ -32,7 +32,7 @@ Restrições gerais: poucos usuários, hospedagem no computador pessoal Windows 
 ## 3. Funcionalidades
 
 1. **Página pública**: seleção do bolão; resumo (concurso, data do sorteio, situação, preço por jogo); quantidade de participantes, jogos ativos e arrecadação (prevista e recebida); resultado do sorteio e totais de quadra/quina/sena; tabela de todos os jogos ativos sem identificação do dono.
-2. **Área do participante**: seletor de bolão; cartões dos jogos com visual de canhoto; cadastro por seleção de 6 dezenas; edição e exclusão enquanto aberto; indicação clara de aberto/bloqueado/encerrado; limite e jogos restantes; valor devido e situação do pagamento.
+2. **Área do participante**: seletor de bolão; cartões dos jogos com visual de canhoto; cadastro por seleção das dezenas (quantidade definida no bolão, padrão 6) ou pela "Surpresinha"; pagamento via Pix (QR Code e copia e cola) quando o admin cadastra a chave; edição e exclusão enquanto aberto; indicação clara de aberto/bloqueado/encerrado; limite e jogos restantes; valor devido e situação do pagamento.
 3. **Área administrativa**:
    - Bolões: criar, editar dados, mudar situação, cadastrar/corrigir resultado.
    - Participantes do bolão: adicionar/remover, ver jogos de cada um, valor devido, marcar pago/pendente.
@@ -42,7 +42,7 @@ Restrições gerais: poucos usuários, hospedagem no computador pessoal Windows 
 
 ## 4. Regras de negócio
 
-1. Cada jogo tem **exatamente 6 dezenas**, de 01 a 60, sem repetição.
+1. Cada jogo tem **exatamente a quantidade de dezenas definida no bolão** (6 a 20, padrão 6), de 01 a 60, sem repetição. O resultado sempre tem 6 dezenas.
 2. A combinação é comparada sem considerar a ordem (o servidor ordena e normaliza).
 3. Uma combinação não pode se repetir entre jogos **ativos do mesmo bolão**, independentemente do dono.
 4. A mesma combinação pode existir em bolões diferentes.

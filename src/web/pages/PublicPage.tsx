@@ -13,6 +13,7 @@ export function PublicPage({ poolId }: { poolId?: number }) {
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState('');
   const [hovered, setHovered] = useState<number | null>(null);
+  const [page, setPage] = useState(0);
   // Os nomes dependem de quem está logado: recarrega ao entrar ou sair.
   const viewerId = useAuth().user?.id ?? null;
 
@@ -25,6 +26,7 @@ export function PublicPage({ poolId }: { poolId?: number }) {
   useEffect(() => {
     if (!currentId) return;
     setData(null);
+    setPage(0);
     get<PublicPool>(`/api/public/pools/${currentId}`).then(setData).catch((e) => setError(e.message));
   }, [currentId, viewerId]);
 
@@ -44,6 +46,12 @@ export function PublicPage({ poolId }: { poolId?: number }) {
       return filterNumbers.every((n) => g.numbers.includes(n));
     });
   }, [data, filter, filterNumbers]);
+
+  // Paginação da tabela: 10 jogos por página (o filtro busca em todos).
+  const PAGE_SIZE = 10;
+  const pageCount = Math.max(1, Math.ceil(games.length / PAGE_SIZE));
+  const current = Math.min(page, pageCount - 1);
+  const pageGames = games.slice(current * PAGE_SIZE, (current + 1) * PAGE_SIZE);
 
   if (error) return <Alert>{error}</Alert>;
   if (!pools) return <Spinner />;
@@ -67,6 +75,7 @@ export function PublicPage({ poolId }: { poolId?: number }) {
             <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">{pool.name}</h1>
             <p className="mt-1 text-white/80">
               Sorteio em <b className="text-white">{formatDate(pool.drawDate)}</b> · {formatCents(pool.priceCents)} por jogo
+              {pool.numbersPerGame !== 6 && <> · {pool.numbersPerGame} dezenas</>}
             </p>
           </div>
           {pools.length > 1 && (
@@ -121,7 +130,7 @@ export function PublicPage({ poolId }: { poolId?: number }) {
             </p>
           </div>
           <input className="input max-w-[16rem]" placeholder={showOwners ? 'Filtrar: dezenas, código ou nome' : 'Filtrar: dezenas (ex.: 7 23) ou código'}
-            value={filter} onChange={(e) => setFilter(e.target.value)} aria-label="Filtrar jogos" />
+            value={filter} onChange={(e) => { setFilter(e.target.value); setPage(0); }} aria-label="Filtrar jogos" />
         </div>
         {games.length === 0 ? (
           <div className="p-6"><EmptyState title={data.games.length ? 'Nenhum jogo corresponde ao filtro' : 'Nenhum jogo registrado ainda'} /></div>
@@ -143,9 +152,9 @@ export function PublicPage({ poolId }: { poolId?: number }) {
                 </tr>
               </thead>
               <tbody>
-                {games.map((g, i) => (
+                {pageGames.map((g, i) => (
                   <tr key={g.code} className={g.tier ? 'bg-gold-100/60' : undefined}>
-                    <td className="text-xs text-slate-400 tabular-nums">{pad(i + 1)}</td>
+                    <td className="text-xs text-slate-400 tabular-nums">{pad(current * PAGE_SIZE + i + 1)}</td>
                     <td className="font-mono text-xs font-semibold text-slate-600">{g.code}</td>
                     {showOwners && <td className="whitespace-nowrap text-sm font-semibold text-brand-900">{g.owner}</td>}
                     <td><Balls numbers={g.numbers} result={result} size="sm" highlight={hovered} /></td>
@@ -156,8 +165,18 @@ export function PublicPage({ poolId }: { poolId?: number }) {
             </table>
           </div>
         )}
-        <div className="border-t border-slate-100 px-4 py-2 text-xs text-slate-500">
-          {games.length} de {data.games.length} jogo(s)
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 px-4 py-2 text-xs text-slate-500">
+          <span>
+            {games.length === 0 ? '0' : `${current * PAGE_SIZE + 1}–${current * PAGE_SIZE + pageGames.length}`} de {games.length} jogo(s)
+            {games.length !== data.games.length && ` (filtrados de ${data.games.length})`}
+          </span>
+          {pageCount > 1 && (
+            <nav className="flex items-center gap-2" aria-label="Páginas">
+              <button type="button" className="btn btn-ghost btn-sm" disabled={current === 0} onClick={() => setPage(current - 1)}>‹ Anterior</button>
+              <span className="tabular-nums">Página {current + 1} de {pageCount}</span>
+              <button type="button" className="btn btn-ghost btn-sm" disabled={current >= pageCount - 1} onClick={() => setPage(current + 1)}>Próxima ›</button>
+            </nav>
+          )}
         </div>
       </section>
     </div>

@@ -14,9 +14,11 @@ Sistema web simples para organizar bolões da Mega-Sena entre conhecidos. Roda e
   - Cadastro manual do resultado, com conferência automática.
   - Gestão de usuários: senha provisória, desativar, redefinir senha e excluir (libera o nick e as combinações).
   - Convites: link por pessoa, de uso único e com validade; a pessoa escolhe nome, nick e senha e já entra no bolão.
+- **Pagamento via Pix:** QR Code e Pix copia e cola com o valor exato que falta pagar, em "Meus jogos" (chave cadastrada pelo admin no bolão).
+- **Surpresinha:** preenche o volante com dezenas aleatórias ainda não usadas no bolão.
 - **Conta:** menu da engrenagem no canto superior direito, com "Trocar senha" e "Sair".
 
-Regras principais: 6 dezenas de 01 a 60; sem combinação repetida dentro do mesmo bolão; valor devido = preço × jogos ativos. Detalhes em [docs/PROJECT.md](docs/PROJECT.md).
+Regras principais: 6 a 20 dezenas por jogo (definido no bolão), de 01 a 60; sem combinação repetida dentro do mesmo bolão; valor devido = preço × jogos ativos. Detalhes em [docs/PROJECT.md](docs/PROJECT.md).
 
 ## Requisitos
 

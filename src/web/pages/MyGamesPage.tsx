@@ -3,8 +3,9 @@ import type { MyGame, MyPool, PublicPool } from '../lib/api.ts';
 import { del, get, post, put } from '../lib/api.ts';
 import { formatCents, formatDate } from '../lib/format.ts';
 import { Link, navigate, useLocation } from '../lib/router.tsx';
-import { NUMBERS_PER_GAME, normalizeNumbers } from '../../shared/rules.ts';
+import { normalizeNumbers, randomGame } from '../../shared/rules.ts';
 import { NumberPicker } from '../components/NumberPicker.tsx';
+import { PixPayment } from '../components/PixPayment.tsx';
 import { Ticket } from '../components/Ticket.tsx';
 import { Alert, EmptyState, PaymentBadge, PoolStatusBadge, Spinner, useFlash } from '../components/ui.tsx';
 
@@ -67,7 +68,17 @@ function PoolGames({ pool, onChanged }: { pool: MyPool; onChanged: () => void })
 
   const remaining = pool.maxGamesPerParticipant - pool.games;
   const canCreate = pool.canEdit && (remaining > 0 || editing !== null);
-  const complete = picked.length === NUMBERS_PER_GAME;
+  const count = pool.numbersPerGame;
+  const complete = picked.length === count;
+
+  // Surpresinha: dezenas aleatórias que ainda não existem no bolão (a pessoa confere e registra).
+  const surprise = () => {
+    const used = new Set(taken);
+    if (ownCombination) used.delete(ownCombination);
+    const g = randomGame(count, used);
+    if (g) { setPicked(g); setError(null); }
+    else setError('Não foi possível sortear uma combinação livre. Tente de novo.');
+  };
   const combination = complete ? normalizeNumbers(picked) : null;
   const ownCombination = editing ? normalizeNumbers(editing.numbers) : null;
   const duplicate = useMemo(
@@ -145,6 +156,11 @@ function PoolGames({ pool, onChanged }: { pool: MyPool; onChanged: () => void })
         </div>
       </section>
 
+      {pool.pix && <PixPayment amountCents={pool.pix.amountCents} payload={pool.pix.payload} />}
+      {!pool.pixConfigured && pool.paymentStatus !== 'paid' && pool.paymentStatus !== 'none' && (
+        <Alert kind="info">Combine o pagamento com o administrador do bolão.</Alert>
+      )}
+
       {flash && <Alert kind="success">{flash}</Alert>}
       {error && <Alert>{error}</Alert>}
 
@@ -160,7 +176,12 @@ function PoolGames({ pool, onChanged }: { pool: MyPool; onChanged: () => void })
                 <h3 className="font-bold text-brand-900">{editing ? `Editando jogo ${editing.code}` : 'Novo jogo'}</h3>
                 {!editing && <span className="text-xs text-slate-500">{remaining} restante(s)</span>}
               </div>
-              <NumberPicker value={picked} onChange={setPicked} />
+              <NumberPicker value={picked} onChange={setPicked} count={count}
+                extra={(
+                  <button type="button" className="btn btn-gold btn-sm" onClick={surprise} title="Preenche com dezenas aleatórias que ainda não foram usadas no bolão">
+                    🎲 Surpresinha
+                  </button>
+                )} />
               {duplicate && <div className="mt-3"><Alert kind="warning">Essa combinação já foi registrada neste bolão.</Alert></div>}
               <div className="mt-4 flex gap-2">
                 <button className="btn btn-primary flex-1" disabled={!complete || duplicate || busy} onClick={save}>
@@ -176,7 +197,7 @@ function PoolGames({ pool, onChanged }: { pool: MyPool; onChanged: () => void })
 
         <section>
           {!games ? <Spinner /> : games.length === 0 ? (
-            <EmptyState title="Nenhum jogo cadastrado">Escolha 6 dezenas e registre seu primeiro jogo.</EmptyState>
+            <EmptyState title="Nenhum jogo cadastrado">Escolha {count} dezenas (ou use a Surpresinha) e registre seu primeiro jogo.</EmptyState>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2">
               {games.map((g) => (

@@ -30,7 +30,7 @@ export function AdminPoolsPage() {
             <h2 className="font-bold text-brand-900">Novo bolão</h2>
             <button className="btn btn-ghost btn-sm" onClick={() => setCreating(false)}>Cancelar</button>
           </div>
-          <PoolForm submitLabel="Criar bolão" onSubmit={async (v) => {
+          <PoolForm submitLabel="Criar bolão" pixDefaults={pools?.find((p) => p.pixKey) ?? undefined} onSubmit={async (v) => {
             const pool = await post<AdminPool>('/api/admin/pools', v);
             navigate(`/admin/bolao/${pool.id}`);
           }} />

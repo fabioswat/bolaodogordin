@@ -27,7 +27,7 @@ export function Ticket({ code, numbers, contestNumber, poolName, result, hits = 
         <div className="mb-2.5 flex items-start justify-between gap-2">
           <div className="min-w-0">
             <div className="truncate text-[11px] font-bold uppercase tracking-[0.14em] text-brand-700">{poolName}</div>
-            <div className="text-[11px] text-slate-500">Concurso {contestNumber} · 6 dezenas</div>
+            <div className="text-[11px] text-slate-500">Concurso {contestNumber} · {numbers.length} dezenas</div>
           </div>
           <span className="shrink-0 rounded-md border border-dashed border-slate-300 px-1.5 py-0.5 font-mono text-[11px] font-semibold text-slate-600">
             {code}

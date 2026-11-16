@@ -20,7 +20,8 @@ import {
 import { createGame, deleteGame, listPoolGamesAdmin, listUserGames, updateGame } from './services/games.ts';
 import { listPoolAudit } from './services/audit.ts';
 import { INVITE_MAX_DAYS, acceptInvite, createInvite, inviteInfo, listInvites, revokeInvite } from './services/invites.ts';
-import { paymentStatus } from '../shared/rules.ts';
+import { MAX_GAME_NUMBERS, MIN_GAME_NUMBERS, paymentStatus } from '../shared/rules.ts';
+import { buildPixPayload, normalizePixKey } from '../shared/pix.ts';
 
 declare module 'fastify' {
   interface FastifyRequest {
@@ -200,11 +201,18 @@ export async function buildApp(opts: AppOptions): Promise<FastifyInstance> {
       const games = Number(m.games);
       const dueCents = games * p.priceCents;
       const paidCents = Number(m.paid_cents);
+      const pendingCents = Math.max(0, dueCents - paidCents);
+      // Pix com o valor exato que falta pagar (só quando o admin cadastrou a chave no bolão).
+      const pix = p.pixKey && pendingCents > 0
+        ? { amountCents: pendingCents, payload: buildPixPayload({
+          key: p.pixKey, name: p.pixName ?? '', city: p.pixCity ?? '', amountCents: pendingCents, txid: `BOLAO${p.id}U${user.id}` }) }
+        : null;
       return {
         id: p.id, name: p.name, contestNumber: p.contestNumber, drawDate: p.drawDate, status: p.status,
-        priceCents: p.priceCents, maxGamesPerParticipant: p.maxGamesPerParticipant, result: p.result,
-        games, dueCents, paidCents, paymentStatus: paymentStatus(dueCents, paidCents),
+        priceCents: p.priceCents, maxGamesPerParticipant: p.maxGamesPerParticipant, numbersPerGame: p.numbersPerGame,
+        result: p.result, games, dueCents, paidCents, paymentStatus: paymentStatus(dueCents, paidCents),
         canEdit: participantCanEdit(p) || user.role === 'admin',
+        pixConfigured: !!p.pixKey, pix,
       };
     });
   });
@@ -235,12 +243,27 @@ export async function buildApp(opts: AppOptions): Promise<FastifyInstance> {
   // ---------- Administração: bolões ----------
   const poolInput = (raw: unknown): PoolInput => {
     const b = asBody(raw);
+    const rawKey = str(b, 'pixKey', 'a chave Pix', { optional: true, max: 77 });
+    let pixKey: string | null = null;
+    let pixName: string | null = null;
+    let pixCity: string | null = null;
+    if (rawKey) {
+      pixKey = normalizePixKey(rawKey);
+      if (!pixKey) {
+        throw new HttpError(400, 'Chave Pix inválida. Use e-mail, CPF/CNPJ, chave aleatória ou telefone com +55 (ex.: +5511999998888).');
+      }
+      pixName = str(b, 'pixName', 'o nome de quem recebe o Pix', { max: 25 });
+      pixCity = str(b, 'pixCity', 'a cidade de quem recebe o Pix', { max: 15 });
+    }
     return {
       name: str(b, 'name', 'o nome do bolão', { max: 80 }),
       contestNumber: int(b, 'contestNumber', 'o número do concurso', 1, 99_999),
       drawDate: isoDate(b, 'drawDate', 'a data do sorteio'),
       priceCents: int(b, 'priceCents', 'o preço por jogo (centavos)', 0, 10_000_000),
       maxGamesPerParticipant: int(b, 'maxGamesPerParticipant', 'o limite de jogos', 1, 1000),
+      numbersPerGame: b.numbersPerGame === undefined ? MIN_GAME_NUMBERS
+        : int(b, 'numbersPerGame', 'a quantidade de dezenas por jogo', MIN_GAME_NUMBERS, MAX_GAME_NUMBERS),
+      pixKey, pixName, pixCity,
     };
   };
   const poolId = (req: FastifyRequest) => idParam((req.params as { id: string }).id);

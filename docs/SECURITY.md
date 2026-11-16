@@ -29,6 +29,11 @@ Medidas proporcionais a um sistema privado com poucos usuários.
 - Visitantes veem a lista de jogos sem nomes. O nome de quem cadastrou aparece só para participantes logados do mesmo bolão e para o admin.
 - Valores e situação de pagamento individuais continuam visíveis só ao admin.
 
+## Pix
+- O Pix é um código estático com a chave cadastrada pelo admin; o sistema não recebe nem confirma pagamentos. Quem paga confere no app do banco o nome de quem recebe.
+- Alterações da chave Pix ficam no histórico do bolão ("Bolão editado"). Uma conta de admin invadida poderia trocar a chave: por isso a senha do admin deve ser forte e exclusiva.
+- O Pix só aparece para participantes logados do bolão, com o valor pendente de cada um.
+
 ## Dados
 - Banco, backups e `.env` ficam fora do controle de versão.
 - Histórico nunca registra senhas, hashes ou tokens.

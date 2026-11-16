@@ -90,3 +90,12 @@ Sessões são removidas no logout, troca/redefinição de senha e desativação 
 ## users.deleted_at (migration 003)
 
 Preenchido quando o admin exclui o usuário. A conta fica inativa, com o nick renomeado para `nick (excluído #id)`, o que libera o nick original, e deixa de aparecer na tela de usuários. O registro continua no banco para o histórico.
+
+## pools: dezenas e Pix (migration 004)
+
+| Coluna | Tipo | Observação |
+|---|---|---|
+| numbers_per_game | INTEGER (6–20, padrão 6) | Dezenas por jogo; só muda sem jogos ativos |
+| pix_key | TEXT | Chave Pix normalizada (e-mail, CPF/CNPJ, aleatória ou +55…) |
+| pix_name | TEXT | Nome de quem recebe (até 25 caracteres) |
+| pix_city | TEXT | Cidade de quem recebe (até 15 caracteres) |

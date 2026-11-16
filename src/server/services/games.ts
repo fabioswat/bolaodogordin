@@ -20,8 +20,8 @@ function newPublicCode(db: DB): string {
   }
 }
 
-function parseInput(numbers: unknown): string {
-  const error = validateNumbers(numbers);
+function parseInput(numbers: unknown, count: number): string {
+  const error = validateNumbers(numbers, count);
   if (error) throw badRequest(error);
   return normalizeNumbers(numbers as number[]);
 }
@@ -66,9 +66,9 @@ function ensureEditable(pool: Pool, actor: SessionUser): void {
 }
 
 export function createGame(db: DB, actor: SessionUser, poolId: number, numbers: unknown) {
-  const combination = parseInput(numbers);
   return transaction(db, () => {
     const pool = getPool(db, poolId);
+    const combination = parseInput(numbers, pool.numbersPerGame);
     ensureEditable(pool, actor);
     if (!isMember(db, poolId, actor.id)) {
       if (actor.role !== 'admin') throw forbidden('Você não participa deste bolão.');
@@ -111,9 +111,9 @@ function loadForChange(db: DB, actor: SessionUser, gameId: number, opts: ChangeO
 }
 
 export function updateGame(db: DB, actor: SessionUser, gameId: number, numbers: unknown, opts: ChangeOptions = {}) {
-  const combination = parseInput(numbers);
   return transaction(db, () => {
-    const { game } = loadForChange(db, actor, gameId, opts);
+    const { game, pool } = loadForChange(db, actor, gameId, opts);
+    const combination = parseInput(numbers, pool.numbersPerGame);
     if (normalizeNumbers(game.numbers) === combination) return game;
     try {
       db.prepare('UPDATE games SET numbers = ?, updated_at = ? WHERE id = ?').run(combination, now(), gameId);
