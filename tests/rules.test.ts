@@ -111,3 +111,18 @@ test('Pix: normalização da chave', () => {
   assert.equal(normalizePixKey('123.456.789-00'), null, 'CPF com dígito errado');
   assert.equal(normalizePixKey('abc'), null);
 });
+
+test('Pix: lê chave, nome e cidade de um copia e cola colado', async () => {
+  const { parsePixPayload } = await import('../src/shared/pix.ts');
+  const code = buildPixPayload({ key: '123e4567-e12b-12d1-a456-426655440000', name: 'Fulano de Tal', city: 'BRASILIA', amountCents: 500 });
+  assert.deepEqual(parsePixPayload(code), { ok: true, key: '123e4567-e12b-12d1-a456-426655440000', name: 'Fulano de Tal', city: 'BRASILIA' });
+  assert.equal(parsePixPayload(code.slice(0, -1) + '0').ok, false, 'CRC errado');
+  assert.equal(parsePixPayload('abc').ok, false);
+  // Código dinâmico (cobrança com link, campo 25) não traz a chave.
+  const tlv = (id: string, v: string) => id + String(v.length).padStart(2, '0') + v;
+  const dyn = tlv('00', '01') + tlv('26', tlv('00', 'br.gov.bcb.pix') + tlv('25', 'pix.exemplo.com/qr/v2/abc123'))
+    + tlv('52', '0000') + tlv('53', '986') + tlv('58', 'BR') + tlv('59', 'Teste') + tlv('60', 'Cidade') + tlv('62', tlv('05', '***')) + '6304';
+  const r = parsePixPayload(dyn + crc16(dyn));
+  assert.equal(r.ok, false);
+  assert.match((r as { reason: string }).reason, /cobrança/);
+});

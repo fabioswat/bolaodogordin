@@ -1,7 +1,7 @@
 # Changelog
 
 ## 1.4.0 — Pix, dezenas por bolão, surpresinha e paginação
-- Pagamento via Pix: o admin cadastra chave, nome e cidade no bolão; em "Meus jogos" o participante vê QR Code e Pix copia e cola com o valor exato que falta pagar (BR Code estático, padrão do Banco Central). A confirmação continua manual.
+- Pagamento via Pix: o admin cadastra chave, nome e cidade no bolão; em "Meus jogos" o participante vê QR Code e Pix copia e cola com o valor exato que falta pagar (BR Code estático, padrão do Banco Central). A confirmação continua manual. No campo da chave dá para colar um Pix copia e cola (ex.: do Mercado Pago): chave, nome e cidade são preenchidos sozinhos.
 - Dezenas por jogo configuráveis por bolão (6 a 20); só pode mudar enquanto não houver jogos. O resultado continua com 6 dezenas.
 - Botão "Surpresinha": preenche o volante com dezenas aleatórias que ainda não foram usadas no bolão.
 - Tabela de jogos da página principal com 10 jogos por página.

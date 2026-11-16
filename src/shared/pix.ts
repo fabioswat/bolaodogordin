@@ -67,6 +67,47 @@ function validCpf(d: string): boolean {
   return check(9) && check(10);
 }
 
+/** Lê os campos TLV (id de 2 dígitos, tamanho de 2 dígitos, valor) de um BR Code. */
+function readTlv(text: string): Map<string, string> | null {
+  const out = new Map<string, string>();
+  let i = 0;
+  while (i < text.length) {
+    const id = text.slice(i, i + 2);
+    const len = Number(text.slice(i + 2, i + 4));
+    if (!/^\d{2}$/.test(id) || !Number.isInteger(len) || i + 4 + len > text.length) return null;
+    out.set(id, text.slice(i + 4, i + 4 + len));
+    i += 4 + len;
+  }
+  return out;
+}
+
+export type ParsedPix =
+  | { ok: true; key: string; name: string; city: string }
+  | { ok: false; reason: string };
+
+/**
+ * Extrai chave, nome e cidade de um "Pix copia e cola" (ex.: gerado no app do Mercado Pago),
+ * para o admin não precisar digitar a chave. Códigos dinâmicos (cobrança com link) não têm a chave.
+ */
+export function parsePixPayload(raw: string): ParsedPix {
+  const text = raw.trim();
+  if (!text.startsWith('000201')) return { ok: false, reason: 'Não parece um Pix copia e cola.' };
+  if (crc16(text.slice(0, -4)) !== text.slice(-4).toUpperCase()) {
+    return { ok: false, reason: 'O código Pix colado está incompleto ou foi alterado. Copie de novo.' };
+  }
+  const top = readTlv(text);
+  const account = top?.get('26');
+  const sub = account ? readTlv(account) : null;
+  if (!top || !sub || sub.get('00')?.toLowerCase() !== 'br.gov.bcb.pix') {
+    return { ok: false, reason: 'Código Pix não reconhecido.' };
+  }
+  const key = sub.get('01');
+  if (!key) {
+    return { ok: false, reason: 'Esse código é de uma cobrança (com link) e não traz a chave. Use a sua chave Pix (e-mail, CPF, telefone ou aleatória).' };
+  }
+  return { ok: true, key, name: top.get('59') ?? '', city: top.get('60') ?? '' };
+}
+
 export function buildPixPayload(p: PixInput): string {
   const account = field('00', 'br.gov.bcb.pix') + field('01', p.key.trim());
   const txid = (p.txid ?? '***').replace(/[^A-Za-z0-9*]/g, '').slice(0, 25) || '***';

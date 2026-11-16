@@ -3,6 +3,7 @@ import type { FormEvent } from 'react';
 import { MAX_GAME_NUMBERS, MIN_GAME_NUMBERS, parseMoneyToCents } from '../../../shared/rules.ts';
 import { centsToInput } from '../../lib/format.ts';
 import { Alert } from '../../components/ui.tsx';
+import { parsePixPayload } from '../../../shared/pix.ts';
 
 export interface PoolFormValues {
   name: string;
@@ -62,6 +63,26 @@ export function PoolForm({ initial, pixDefaults, lockNumbers, submitLabel, onSub
 
   const hasKey = pixKey.trim() !== '';
 
+  // Colou um "Pix copia e cola" no campo da chave: extrai chave, nome e cidade.
+  const [pixNote, setPixNote] = useState<{ ok: boolean; text: string } | null>(null);
+  const onKeyChange = (value: string) => {
+    if (value.trim().startsWith('000201') && value.trim().length > 40) {
+      const parsed = parsePixPayload(value);
+      if (parsed.ok) {
+        setPixKey(parsed.key);
+        if (parsed.name) setPixName(parsed.name.slice(0, 25));
+        if (parsed.city) setPixCity(parsed.city.slice(0, 15));
+        setPixNote({ ok: true, text: 'Dados lidos do Pix copia e cola. Confira e salve.' });
+      } else {
+        setPixKey('');
+        setPixNote({ ok: false, text: parsed.reason });
+      }
+      return;
+    }
+    setPixNote(null);
+    setPixKey(value);
+  };
+
   return (
     <form onSubmit={submit} className="grid gap-3 sm:grid-cols-2">
       {error && <div className="sm:col-span-2"><Alert>{error}</Alert></div>}
@@ -107,9 +128,13 @@ export function PoolForm({ initial, pixDefaults, lockNumbers, submitLabel, onSub
         </p>
         <div className="sm:col-span-2">
           <label className="label" htmlFor="pf-pixkey">Chave Pix</label>
-          <input id="pf-pixkey" className="input" maxLength={77} autoCapitalize="none" placeholder="e-mail, CPF, CNPJ, aleatória ou +5511999998888"
-            value={pixKey} onChange={(e) => setPixKey(e.target.value)} />
-          <p className="mt-1 text-xs text-slate-500">Telefone: use +55 e o DDD (ex.: +5511999998888). Deixe em branco para não mostrar Pix.</p>
+          <input id="pf-pixkey" className="input" autoCapitalize="none" placeholder="e-mail, CPF, CNPJ, aleatória, +5511999998888 ou cole um Pix copia e cola"
+            value={pixKey} onChange={(e) => onKeyChange(e.target.value)} />
+          {pixNote && <p className={`mt-1 text-xs ${pixNote.ok ? 'text-brand-700' : 'text-red-700'}`}>{pixNote.text}</p>}
+          <p className="mt-1 text-xs text-slate-500">
+            Telefone: use +55 e o DDD (ex.: +5511999998888). Se tiver um Pix copia e cola seu (ex.: gerado no Mercado Pago), pode colar aqui:
+            a chave, o nome e a cidade são preenchidos sozinhos. Deixe em branco para não mostrar Pix.
+          </p>
         </div>
         <div>
           <label className="label" htmlFor="pf-pixname">Nome de quem recebe</label>
