@@ -39,3 +39,17 @@ Cada etapa foi concluída e testada antes da próxima.
 - [ ] Instalar seguindo `DEPLOYMENT.md` e criar o administrador.
 - [ ] Testar restauração de backup e reinício do computador.
 - [ ] Configurar acesso externo, se desejado.
+
+## Versões 1.1 a 1.4 ✅
+- [x] Convites, nomes nos jogos, exclusão de usuário, conta de serviço e script de publicação.
+- [x] Modo escuro, bolas do sorteio com faixas premiadas, realce de dezenas.
+- [x] Pix (QR Code e copia e cola), dezenas por bolão (6 a 20), Surpresinha, paginação e ordenação por participante.
+- [x] Rodapé com créditos e versão.
+
+## Versão 1.5 — Vários bolões na página inicial (planejado)
+- [ ] Bolão em destaque aparece primeiro na página inicial.
+- [ ] Setas à esquerda e à direita para passar entre os bolões.
+- [ ] Manter um seletor para escolher pelo nome/concurso e uma busca por número do concurso.
+- [ ] Preparar para outras loterias no futuro: **Lotofácil** (roxinho) e **Dia de Sorte** (amarelinho), cada uma com suas regras
+      (faixa de números, quantidade de dezenas, faixas de premiação e cores). Ex.: Lotofácil sorteia 15 de 25;
+      Dia de Sorte sorteia 7 de 31 mais o "Mês da Sorte".
