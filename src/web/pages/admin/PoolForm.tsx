@@ -43,9 +43,11 @@ export function PoolForm({ initial, pixDefaults, lockNumbers, submitLabel, onSub
   const [pixBank, setPixBank] = useState(pix?.pixBank ?? '');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
+    setSaved(false);
     const priceCents = parseMoneyToCents(price);
     if (priceCents === null) return setError('Preço inválido. Use, por exemplo, 6,00.');
     setBusy(true);
@@ -57,6 +59,7 @@ export function PoolForm({ initial, pixDefaults, lockNumbers, submitLabel, onSub
         pixKey: pixKey.trim() || null, pixName: pixName.trim() || null, pixCity: pixCity.trim() || null,
         pixBank: pixBank.trim() || null,
       });
+      setSaved(true);
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -87,8 +90,7 @@ export function PoolForm({ initial, pixDefaults, lockNumbers, submitLabel, onSub
   };
 
   return (
-    <form onSubmit={submit} className="grid gap-3 sm:grid-cols-2">
-      {error && <div className="sm:col-span-2"><Alert>{error}</Alert></div>}
+    <form onSubmit={submit} onChange={() => setSaved(false)} className="grid gap-3 sm:grid-cols-2">
       <div className="sm:col-span-2">
         <label className="label" htmlFor="pf-name">Nome do bolão</label>
         <input id="pf-name" className="input" required maxLength={80} placeholder="Mega da Virada 2026" value={name} onChange={(e) => setName(e.target.value)} />
@@ -111,16 +113,26 @@ export function PoolForm({ initial, pixDefaults, lockNumbers, submitLabel, onSub
       </div>
       <div>
         <label className="label" htmlFor="pf-numbers">Dezenas por jogo</label>
-        <select id="pf-numbers" className="input" value={numbers} disabled={lockNumbers} onChange={(e) => setNumbers(Number(e.target.value))}>
-          {Array.from({ length: MAX_GAME_NUMBERS - MIN_GAME_NUMBERS + 1 }, (_, i) => MIN_GAME_NUMBERS + i).map((n) => (
-            <option key={n} value={n}>{n} dezenas</option>
-          ))}
-        </select>
-        <p className="mt-1 text-xs text-slate-500">
-          {lockNumbers
-            ? 'Não dá para mudar: o bolão já tem jogos.'
-            : 'O resultado continua com 6 dezenas. Ajuste o preço por jogo conforme a tabela da Caixa.'}
-        </p>
+        {lockNumbers ? (
+          <>
+            <div id="pf-numbers" className="input flex items-center justify-between bg-slate-50 text-slate-600">
+              <span>{numbers} dezenas</span>
+              <span aria-hidden="true">🔒</span>
+            </div>
+            <p className="mt-1 text-xs text-amber-700">
+              Fixo porque o bolão já tem jogos cadastrados. Para usar outra quantidade, crie um bolão novo.
+            </p>
+          </>
+        ) : (
+          <>
+            <select id="pf-numbers" className="input" value={numbers} onChange={(e) => setNumbers(Number(e.target.value))}>
+              {Array.from({ length: MAX_GAME_NUMBERS - MIN_GAME_NUMBERS + 1 }, (_, i) => MIN_GAME_NUMBERS + i).map((n) => (
+                <option key={n} value={n}>{n} dezenas</option>
+              ))}
+            </select>
+            <p className="mt-1 text-xs text-slate-500">O resultado continua com 6 dezenas. Ajuste o preço por jogo conforme a tabela da Caixa.</p>
+          </>
+        )}
       </div>
 
       <fieldset className="mt-2 grid gap-3 rounded-xl border border-slate-200 p-3 sm:col-span-2 sm:grid-cols-2">
@@ -157,8 +169,11 @@ export function PoolForm({ initial, pixDefaults, lockNumbers, submitLabel, onSub
         </div>
       </fieldset>
 
-      <div className="sm:col-span-2">
+      {/* Retorno junto do botão (antes aparecia no topo da página, fora da vista). */}
+      {error && <div className="sm:col-span-2"><Alert>{error}</Alert></div>}
+      <div className="flex flex-wrap items-center gap-3 sm:col-span-2">
         <button className="btn btn-primary" disabled={busy}>{busy ? 'Salvando…' : submitLabel}</button>
+        {saved && <span className="text-sm font-semibold text-brand-700" role="status">✓ Alterações salvas</span>}
       </div>
     </form>
   );
