@@ -1,0 +1,6 @@
+# Quebras de linha padronizadas: LF no repositorio; scripts do Windows com CRLF.
+* text=auto eol=lf
+*.ps1 text eol=crlf
+*.cmd text eol=crlf
+*.png binary
+*.db binary

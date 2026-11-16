@@ -1,0 +1,323 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "Cascadia Mono", Consolas, ui-monospace, monospace;
+  --color-brand-50: #ecf8f1;
+  --color-brand-100: #d2efdf;
+  --color-brand-200: #a6dec0;
+  --color-brand-500: #1d9a5e;
+  --color-brand-600: #12804c;
+  --color-brand-700: #0b5d3b;
+  --color-brand-800: #08482e;
+  --color-brand-900: #053320;
+  --color-gold-100: #fdf3d4;
+  --color-gold-300: #f5d77a;
+  --color-gold-400: #efc34a;
+  --color-gold-500: #d9a521;
+  --color-gold-700: #8a6510;
+  --color-paper: #fffdf7;
+  --color-ground: #f3f5f2;
+}
+
+html { background: var(--color-ground); }
+body { background: var(--color-ground); color: #1c2a22; -webkit-font-smoothing: antialiased; }
+
+@layer components {
+  .card { @apply rounded-2xl border border-black/5 bg-white shadow-sm; }
+  .input { @apply w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-200; }
+  .label { @apply mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500; }
+  .btn { @apply inline-flex items-center justify-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50; }
+  /* Use sempre junto com .btn, ex.: class="btn btn-primary" */
+  .btn-primary { @apply bg-brand-700 text-white hover:bg-brand-800; }
+  .btn-gold { @apply bg-gold-400 text-brand-900 hover:bg-gold-500; }
+  .btn-ghost { @apply border border-slate-300 bg-white text-slate-700 hover:bg-slate-50; }
+  .btn-danger { @apply border border-red-200 bg-white text-red-700 hover:bg-red-50; }
+  .btn-sm { @apply px-2.5 py-1 text-xs; }
+  .badge { @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold; }
+  .table-wrap { @apply overflow-x-auto; }
+  .table { @apply w-full text-left text-sm; }
+  .table th { @apply whitespace-nowrap border-b border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500; }
+  .table td { @apply border-b border-slate-100 px-3 py-2 align-middle; }
+  .tab { @apply whitespace-nowrap border-b-2 border-transparent px-3 py-2 text-sm font-semibold text-slate-500 hover:text-brand-700; }
+  .tab-active { @apply border-brand-700 text-brand-700; }
+}
+
+/* ---------- Canhoto de loteria ---------- */
+.ticket {
+  position: relative;
+  display: flex;
+  border-radius: 14px;
+  background: var(--color-paper);
+  border: 1px solid #e7e1cf;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.05), 0 6px 16px -8px rgb(11 93 59 / 0.25);
+  overflow: hidden;
+}
+.ticket::before {
+  /* faixa de cor no topo, como um bilhete impresso */
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 5px;
+  background: repeating-linear-gradient(90deg, var(--color-brand-700) 0 18px, var(--color-gold-400) 18px 24px);
+}
+.ticket-stub {
+  position: relative;
+  flex: 0 0 64px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 14px 6px 10px;
+  background: var(--color-brand-700);
+  color: #fff;
+}
+.ticket-stub-label {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  opacity: 0.9;
+}
+.ticket-perforation {
+  position: relative;
+  flex: 0 0 0;
+  border-left: 2px dashed #d8d0b8;
+}
+.ticket-perforation::before,
+.ticket-perforation::after {
+  content: "";
+  position: absolute;
+  left: -9px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--color-ground);
+  border: 1px solid #e7e1cf;
+}
+.ticket-perforation::before { top: -9px; }
+.ticket-perforation::after { bottom: -9px; }
+.ticket-body {
+  flex: 1;
+  min-width: 0;
+  padding: 16px 14px 12px 16px;
+  background-image: radial-gradient(rgb(11 93 59 / 0.05) 1px, transparent 1px);
+  background-size: 10px 10px;
+}
+
+/* ---------- Bolas ---------- */
+.ball {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.ball-md { width: 2.25rem; height: 2.25rem; font-size: 0.95rem; }
+.ball-sm { width: 1.85rem; height: 1.85rem; font-size: 0.8rem; }
+.ball-lg { width: 3.1rem; height: 3.1rem; font-size: 1.3rem; }
+.ball-fluid { width: 100%; aspect-ratio: 1; font-size: 0.9rem; }
+.ball-default { background: #fff; color: var(--color-brand-800); border: 2px solid var(--color-brand-500); }
+.ball-hit { background: var(--color-gold-400); color: var(--color-brand-900); border: 2px solid var(--color-gold-500); }
+.ball-miss { background: #fff; color: #94a3b8; border: 2px solid #e2e8f0; }
+.ball-result {
+  background: radial-gradient(circle at 35% 30%, #fff6d5, var(--color-gold-400) 55%, var(--color-gold-500));
+  color: var(--color-brand-900);
+  box-shadow: inset 0 -3px 0 rgb(0 0 0 / 0.12), 0 4px 10px -4px rgb(0 0 0 / 0.4);
+}
+
+/* ---------- Seletor de dezenas ---------- */
+.picker-cell {
+  aspect-ratio: 1;
+  border-radius: 9999px;
+  border: 1.5px solid #c9ddd1;
+  background: #fff;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--color-brand-800);
+  font-variant-numeric: tabular-nums;
+  transition: transform 0.08s, background 0.12s;
+}
+.picker-cell:hover:not(:disabled) { border-color: var(--color-brand-500); background: var(--color-brand-50); }
+.picker-cell:active:not(:disabled) { transform: scale(0.92); }
+.picker-cell[aria-pressed="true"] { background: var(--color-brand-700); border-color: var(--color-brand-700); color: #fff; }
+.picker-cell:disabled { opacity: 0.35; cursor: not-allowed; }
+
+.hero {
+  background:
+    radial-gradient(circle at 85% 10%, rgb(239 195 74 / 0.35), transparent 40%),
+    radial-gradient(circle at 10% 90%, rgb(29 154 94 / 0.45), transparent 45%),
+    linear-gradient(135deg, var(--color-brand-800), var(--color-brand-900));
+}
+
+/* ---------- Bolas do sorteio (topo da página) ---------- */
+.draw-ball {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 6.5rem;
+  aspect-ratio: 1;
+  border-radius: 9999px;
+  font-size: clamp(1rem, 3.4vw, 2.5rem);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  box-shadow: inset 0 -4px 0 rgb(0 0 0 / 0.14), 0 6px 14px -6px rgb(0 0 0 / 0.55);
+}
+/* Sempre 6 bolas numa linha: o tamanho se ajusta à largura disponível. */
+.draw-row { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); justify-items: center; gap: clamp(0.5rem, 2vw, 1.5rem); width: 100%; }
+/* Antes do sorteio: bola branca com "?" flutuando de leve. */
+.draw-ball-pending {
+  background: radial-gradient(circle at 35% 28%, #ffffff, #e8eee9 45%, #a9b8ae 100%);
+  color: #7d8f84;
+  animation: draw-float 3s ease-in-out infinite;
+}
+/* Acertada pelo melhor jogo: dourada e acesa. */
+.draw-ball-lit {
+  background: radial-gradient(circle at 35% 28%, #fff6d5, var(--color-gold-400) 55%, var(--color-gold-500));
+  color: var(--color-brand-900);
+  box-shadow: inset 0 -4px 0 rgb(0 0 0 / 0.12), 0 0 0 3px rgb(239 195 74 / 0.25), 0 0 22px rgb(239 195 74 / 0.55);
+}
+/* Faltou acertar: vermelha. */
+.draw-ball-out {
+  background: radial-gradient(circle at 35% 28%, #ffd2d2, #e5484d 55%, #a51d24);
+  color: #fff;
+}
+/* Bolinhas das faixas abaixo do melhor jogo (quina, quadra). */
+.draw-ball-mini {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 1.7rem; height: 1.7rem; border-radius: 9999px;
+  font-size: 0.7rem; font-weight: 800; font-variant-numeric: tabular-nums;
+}
+.draw-ball-mini.draw-ball-lit { box-shadow: inset 0 -2px 0 rgb(0 0 0 / 0.12), 0 0 8px rgb(239 195 74 / 0.45); }
+.draw-ball-mini.draw-ball-out { box-shadow: inset 0 -2px 0 rgb(0 0 0 / 0.15); opacity: 0.85; }
+.draw-ball-reveal { animation: draw-pop 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.3) both; }
+@keyframes draw-pop {
+  from { transform: scale(0.4) rotate(-120deg); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+@keyframes draw-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+/* ---------- Realce de dezena na tabela ---------- */
+.ball-hoverable { display: inline-flex; border-radius: 9999px; cursor: default; }
+.ball-hoverable .ball { transition: transform 0.12s, box-shadow 0.12s; }
+.ball-hoverable:hover .ball { transform: scale(1.18); }
+.ball-glow .ball { transform: scale(1.12); box-shadow: 0 0 0 3px rgb(239 195 74 / 0.6), 0 0 12px rgb(239 195 74 / 0.5); }
+
+/* ---------- Balão de ajuda (ⓘ) ---------- */
+.tip { position: relative; display: inline-flex; text-transform: none; letter-spacing: normal; }
+.tip-btn {
+  width: 1.15rem; height: 1.15rem; border-radius: 9999px;
+  border: 1.5px solid currentColor; font: italic 700 0.7rem/1 Georgia, serif;
+  display: inline-flex; align-items: center; justify-content: center; opacity: 0.85; cursor: help;
+}
+.tip-btn:hover, .tip-btn:focus-visible { opacity: 1; }
+.tip-box {
+  position: absolute; left: 50%; top: calc(100% + 8px); z-index: 30;
+  width: max-content; max-width: min(18rem, 80vw); transform: translateX(-50%);
+  padding: 0.55rem 0.75rem; border-radius: 0.6rem;
+  background: #0b1f16; color: #e8f2ec; font-size: 0.8rem; font-weight: 500; line-height: 1.35;
+  box-shadow: 0 8px 24px -8px rgb(0 0 0 / 0.6);
+  opacity: 0; visibility: hidden; transition: opacity 0.12s;
+}
+.tip:hover .tip-box, .tip:focus-within .tip-box { opacity: 1; visibility: visible; }
+
+@media (prefers-reduced-motion: reduce) {
+  .draw-ball-pending, .draw-ball-reveal { animation: none; }
+  .ball-hoverable .ball { transition: none; }
+}
+
+/* =====================================================================
+   Modo escuro. A classe "dark" no <html> é aplicada por lib/theme.ts
+   (segue o aparelho ou a escolha do botão sol/lua). As regras abaixo ficam
+   fora de @layer de propósito, para valerem sobre as classes do Tailwind.
+   ===================================================================== */
+
+/* Evita o "clarão" antes do JavaScript carregar. */
+@media (prefers-color-scheme: dark) {
+  html { background: #0e1512; }
+}
+
+:root.dark {
+  --color-ground: #0e1512;
+  --color-paper: #18231d;
+  /* Escala neutra invertida: o que era claro fica escuro e vice-versa. */
+  --color-slate-50: #1a241f;
+  --color-slate-100: #212c26;
+  --color-slate-200: #2b3731;
+  --color-slate-300: #3a4740;
+  --color-slate-400: #6f7e76;
+  --color-slate-500: #95a39b;
+  --color-slate-600: #b4c0b9;
+  --color-slate-700: #ccd5d0;
+  --color-slate-800: #e3e9e5;
+  --surface: #151f1a;
+  --ink: #e3ece6;
+  color-scheme: dark;
+}
+:root.dark body { background: var(--color-ground); color: var(--ink); }
+
+/* Superfícies */
+:root.dark .bg-white,
+:root.dark .card { background-color: var(--surface); }
+:root.dark .card { border-color: rgb(255 255 255 / 0.07); box-shadow: none; }
+:root.dark .border-black\/5 { border-color: rgb(255 255 255 / 0.07); }
+:root.dark .input { background-color: #111a16; color: var(--ink); }
+:root.dark .btn-ghost { background-color: var(--surface); color: var(--color-slate-700); }
+:root.dark .btn-ghost:hover { background-color: var(--color-slate-100); }
+:root.dark .btn-danger { background-color: var(--surface); color: #fca5a5; border-color: rgb(239 68 68 / 0.35); }
+:root.dark .btn-danger:hover { background-color: rgb(239 68 68 / 0.12); }
+:root.dark .btn-primary { background-color: var(--color-brand-600); }
+:root.dark .btn-primary:hover { background-color: var(--color-brand-500); }
+:root.dark .tab:hover, :root.dark .tab-active { color: #6fd3a0; }
+:root.dark .tab-active { border-color: #6fd3a0; }
+:root.dark header.bg-brand-800 { background-color: #0b2a1c; }
+
+/* Textos verdes (títulos e links) ficam claros; o "06" do logo, sobre dourado, não. */
+:root.dark .text-brand-900:not([class*="bg-gold"]) { color: var(--ink); }
+:root.dark .text-brand-800 { color: #cdeedd; }
+:root.dark .text-brand-700,
+:root.dark .hover\:text-brand-700:hover { color: #6fd3a0; }
+:root.dark .bg-brand-50 { background-color: rgb(29 154 94 / 0.12); }
+:root.dark .bg-brand-100 { background-color: rgb(29 154 94 / 0.2); }
+:root.dark .border-brand-200,
+:root.dark .hover\:border-brand-200:hover { border-color: rgb(29 154 94 / 0.4); }
+
+/* Avisos e selos */
+:root.dark .bg-red-50, :root.dark .hover\:bg-red-50:hover { background-color: rgb(239 68 68 / 0.12); }
+:root.dark .bg-red-100 { background-color: rgb(239 68 68 / 0.2); }
+:root.dark .text-red-600, :root.dark .text-red-700, :root.dark .text-red-800,
+:root.dark .hover\:text-red-600:hover { color: #fca5a5; }
+:root.dark .border-red-200 { border-color: rgb(239 68 68 / 0.35); }
+:root.dark .bg-amber-50 { background-color: rgb(245 158 11 / 0.1); }
+:root.dark .bg-amber-100 { background-color: rgb(245 158 11 / 0.18); }
+:root.dark .text-amber-700, :root.dark .text-amber-800, :root.dark .text-amber-900 { color: #fcd34d; }
+:root.dark .border-amber-200 { border-color: rgb(245 158 11 / 0.35); }
+:root.dark .bg-emerald-100 { background-color: rgb(16 185 129 / 0.18); }
+:root.dark .text-emerald-800 { color: #6ee7b7; }
+:root.dark .bg-sky-50 { background-color: rgb(14 165 233 / 0.12); }
+:root.dark .text-sky-800 { color: #7dd3fc; }
+:root.dark .border-sky-200 { border-color: rgb(14 165 233 / 0.35); }
+:root.dark .bg-gold-100 { background-color: rgb(239 195 74 / 0.14); }
+:root.dark .bg-gold-100\/60 { background-color: rgb(239 195 74 / 0.1); }
+:root.dark .text-gold-700 { color: #f5d77a; }
+:root.dark .border-gold-300 { border-color: rgb(239 195 74 / 0.4); }
+
+/* Canhoto, bolas e seletor */
+:root.dark .ticket { border-color: #2c3a32; box-shadow: 0 6px 16px -8px rgb(0 0 0 / 0.6); }
+:root.dark .ticket-perforation { border-left-color: #34443b; }
+:root.dark .ticket-perforation::before,
+:root.dark .ticket-perforation::after { border-color: #2c3a32; }
+:root.dark .ticket-body { background-image: radial-gradient(rgb(111 211 160 / 0.06) 1px, transparent 1px); }
+:root.dark .ball-default { background: #10241a; color: #bfeed5; border-color: var(--color-brand-500); }
+:root.dark .ball-miss { background: transparent; color: #5f6e66; border-color: #2b3731; }
+:root.dark .picker-cell { background: #111a16; border-color: #2e4a3b; color: #cdeedd; }
+:root.dark .picker-cell:hover:not(:disabled) { background: rgb(29 154 94 / 0.15); }
+:root.dark .picker-cell[aria-pressed="true"] { background: var(--color-brand-600); border-color: var(--color-brand-600); color: #fff; }
