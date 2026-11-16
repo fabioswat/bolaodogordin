@@ -5,6 +5,7 @@
 - Dezenas por jogo configuráveis por bolão (6 a 20); só pode mudar enquanto não houver jogos. O resultado continua com 6 dezenas.
 - Botão "Surpresinha": preenche o volante com dezenas aleatórias que ainda não foram usadas no bolão.
 - Tabela de jogos da página principal com 10 jogos por página.
+- Rodapé com os créditos (Gordin da SBM e Claudinho) e a versão do sistema, lida do package.json no build.
 - Configurações do bolão: confirmação "Alterações salvas" (e erros) ao lado do botão; quantidade de dezenas travada aparece com cadeado e explicação.
 
 ## 1.3.1 — Bolas maiores

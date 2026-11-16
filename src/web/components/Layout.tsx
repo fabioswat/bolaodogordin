@@ -114,7 +114,12 @@ export function Layout({ children }: { children: ReactNode }) {
       </header>
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">{children}</main>
       <footer className="border-t border-slate-200 px-4 py-5 text-center text-xs text-slate-500" style={{ paddingBottom: 'calc(1.25rem + env(safe-area-inset-bottom, 0px))' }}>
-        Registro interno do bolão. Não substitui o comprovante oficial da aposta nem garante premiação.
+        <p>Registro interno do bolão. Não substitui o comprovante oficial da aposta nem garante premiação.</p>
+        <p className="mt-1.5">
+          Criado pelo <b className="font-semibold text-slate-600">Gordin da SBM</b> em parceria com seu amigo <b className="font-semibold text-slate-600">Claudinho</b>
+          <span className="mx-1.5" aria-hidden="true">·</span>
+          <span className="rounded-full border border-slate-200 bg-slate-100 px-2 py-0.5 text-[11px] font-semibold tabular-nums text-slate-600" title="Versão do sistema">v{__APP_VERSION__}</span>
+        </p>
       </footer>
     </div>
   );
