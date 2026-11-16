@@ -92,7 +92,7 @@ export interface MyPool extends PoolSummary {
   numbersPerGame: number;
   pixConfigured: boolean;
   /** Pix com o valor pendente; null se não houver chave ou nada a pagar. */
-  pix: { amountCents: number; payload: string } | null;
+  pix: { amountCents: number; payload: string; name: string | null; bank: string | null } | null;
   result: number[] | null;
   games: number;
   dueCents: number;
@@ -117,6 +117,7 @@ export interface AdminPool extends PoolSummary {
   pixKey: string | null;
   pixName: string | null;
   pixCity: string | null;
+  pixBank: string | null;
   result: number[] | null;
   resultRegisteredAt: string | null;
   stats: PoolStats;

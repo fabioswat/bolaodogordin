@@ -204,7 +204,7 @@ export async function buildApp(opts: AppOptions): Promise<FastifyInstance> {
       const pendingCents = Math.max(0, dueCents - paidCents);
       // Pix com o valor exato que falta pagar (só quando o admin cadastrou a chave no bolão).
       const pix = p.pixKey && pendingCents > 0
-        ? { amountCents: pendingCents, payload: buildPixPayload({
+        ? { amountCents: pendingCents, name: p.pixName, bank: p.pixBank, payload: buildPixPayload({
           key: p.pixKey, name: p.pixName ?? '', city: p.pixCity ?? '', amountCents: pendingCents, txid: `BOLAO${p.id}U${user.id}` }) }
         : null;
       return {
@@ -247,6 +247,7 @@ export async function buildApp(opts: AppOptions): Promise<FastifyInstance> {
     let pixKey: string | null = null;
     let pixName: string | null = null;
     let pixCity: string | null = null;
+    let pixBank: string | null = null;
     if (rawKey) {
       pixKey = normalizePixKey(rawKey);
       if (!pixKey) {
@@ -254,6 +255,7 @@ export async function buildApp(opts: AppOptions): Promise<FastifyInstance> {
       }
       pixName = str(b, 'pixName', 'o nome de quem recebe o Pix', { max: 25 });
       pixCity = str(b, 'pixCity', 'a cidade de quem recebe o Pix', { max: 15 });
+      pixBank = str(b, 'pixBank', 'a instituição', { optional: true, max: 40 }) || null;
     }
     return {
       name: str(b, 'name', 'o nome do bolão', { max: 80 }),
@@ -263,7 +265,7 @@ export async function buildApp(opts: AppOptions): Promise<FastifyInstance> {
       maxGamesPerParticipant: int(b, 'maxGamesPerParticipant', 'o limite de jogos', 1, 1000),
       numbersPerGame: b.numbersPerGame === undefined ? MIN_GAME_NUMBERS
         : int(b, 'numbersPerGame', 'a quantidade de dezenas por jogo', MIN_GAME_NUMBERS, MAX_GAME_NUMBERS),
-      pixKey, pixName, pixCity,
+      pixKey, pixName, pixCity, pixBank,
     };
   };
   const poolId = (req: FastifyRequest) => idParam((req.params as { id: string }).id);

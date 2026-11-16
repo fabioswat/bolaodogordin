@@ -24,8 +24,10 @@ function QrSvg({ text }: { text: string }) {
   );
 }
 
-/** Cartão de pagamento: QR Code e "copia e cola" com o valor exato que falta pagar. */
-export function PixPayment({ amountCents, payload }: { amountCents: number; payload: string }) {
+/** Cartão de pagamento: valor, quem recebe, QR Code e "copia e cola" com o valor exato que falta pagar. */
+export function PixPayment({ amountCents, payload, name, bank }: {
+  amountCents: number; payload: string; name?: string | null; bank?: string | null;
+}) {
   const [copied, setCopied] = useState(false);
   const copy = async () => {
     try {
@@ -43,28 +45,23 @@ export function PixPayment({ amountCents, payload }: { amountCents: number; payl
   return (
     <section className="card p-4 sm:p-5">
       <div className="flex flex-col items-center gap-5 sm:flex-row sm:items-start">
-        <div className="w-56 max-w-full shrink-0 rounded-xl border border-slate-200 bg-white p-2 sm:w-48">
+        <div className="w-56 max-w-full shrink-0 rounded-xl border border-slate-200 bg-white p-2 sm:w-44">
           <QrSvg text={payload} />
         </div>
-        <div className="min-w-0 flex-1 space-y-3">
+        <div className="w-full min-w-0 flex-1 space-y-3">
           <div>
             <h3 className="font-bold text-brand-900">Pagar com Pix</h3>
-            <p className="text-sm text-slate-500">
-              Valor a pagar: <b className="text-lg text-brand-800 tabular-nums">{formatCents(amountCents)}</b>
-            </p>
+            <div className="text-2xl font-extrabold text-brand-800 tabular-nums">{formatCents(amountCents)}</div>
+            {(name || bank) && (
+              <p className="text-sm text-slate-500">
+                Para <b className="text-slate-700">{name}</b>{bank && <> · {bank}</>}
+              </p>
+            )}
           </div>
-          <ol className="list-decimal space-y-1 pl-5 text-sm text-slate-600">
-            <li>Abra o app do seu banco e escolha <b>Pix → Ler QR Code</b> ou <b>Pix copia e cola</b>.</li>
-            <li>Confira o valor e o nome de quem recebe, e confirme.</li>
-            <li>O administrador confirma o pagamento aqui no bolão.</li>
-          </ol>
-          <div>
-            <label className="label" htmlFor="pix-copia-cola">Pix copia e cola</label>
-            <textarea id="pix-copia-cola" readOnly rows={2} value={payload} onFocus={(e) => e.currentTarget.select()}
-              className="input resize-none break-all font-mono text-xs" />
-          </div>
+          <textarea id="pix-copia-cola" readOnly rows={2} value={payload} aria-label="Pix copia e cola"
+            onFocus={(e) => e.currentTarget.select()} className="input resize-none break-all font-mono text-xs" />
           <button type="button" className="btn btn-primary w-full sm:w-auto" onClick={copy}>
-            {copied ? 'Copiado! Agora cole no app do banco' : 'Copiar Pix copia e cola'}
+            {copied ? 'Copiado!' : 'Copiar Pix copia e cola'}
           </button>
         </div>
       </div>

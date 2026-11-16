@@ -424,7 +424,7 @@ describe('dezenas por bolão e Pix', () => {
     assert.equal((await admin.req('POST', '/api/admin/pools', { ...base, numbersPerGame: 21 })).status, 400);
     assert.equal((await admin.req('POST', '/api/admin/pools', { ...base, numbersPerGame: 8, pixKey: '11 99999-8888', pixName: 'X', pixCity: 'Y' })).status, 400);
     assert.equal((await admin.req('POST', '/api/admin/pools', { ...base, numbersPerGame: 8, pixKey: 'gordin@exemplo.com' })).status, 400, 'exige nome e cidade');
-    const r = await admin.req('POST', '/api/admin/pools', { ...base, numbersPerGame: 8, pixKey: 'Gordin@Exemplo.com', pixName: 'Gordin da Silva', pixCity: 'Campinas' });
+    const r = await admin.req('POST', '/api/admin/pools', { ...base, numbersPerGame: 8, pixKey: 'Gordin@Exemplo.com', pixName: 'Gordin da Silva', pixCity: 'Campinas', pixBank: 'Mercado Pago' });
     assert.equal(r.status, 201, JSON.stringify(r.body));
     pool8 = r.body.id;
     assert.equal(r.body.numbersPerGame, 8);
@@ -447,6 +447,8 @@ describe('dezenas por bolão e Pix', () => {
   test('Pix do participante tem o valor pendente e some quando pago', async () => {
     let me = ((await c.req('GET', '/api/me/pools')).body as Json[]).find((p) => p.id === pool8)!;
     assert.equal(me.pix.amountCents, 600);
+    assert.equal(me.pix.name, 'Gordin da Silva');
+    assert.equal(me.pix.bank, 'Mercado Pago');
     assert.ok(me.pix.payload.includes('br.gov.bcb.pix0118gordin@exemplo.com'));
     assert.ok(me.pix.payload.includes('54046.00'));
     assert.ok(me.pix.payload.includes(`BOLAO${pool8}U${uid}`));

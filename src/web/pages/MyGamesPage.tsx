@@ -156,7 +156,7 @@ function PoolGames({ pool, onChanged }: { pool: MyPool; onChanged: () => void })
         </div>
       </section>
 
-      {pool.pix && <PixPayment amountCents={pool.pix.amountCents} payload={pool.pix.payload} />}
+      {pool.pix && <PixPayment amountCents={pool.pix.amountCents} payload={pool.pix.payload} name={pool.pix.name} bank={pool.pix.bank} />}
       {!pool.pixConfigured && pool.paymentStatus !== 'paid' && pool.paymentStatus !== 'none' && (
         <Alert kind="info">Combine o pagamento com o administrador do bolão.</Alert>
       )}

@@ -15,6 +15,7 @@ export interface PoolFormValues {
   pixKey: string | null;
   pixName: string | null;
   pixCity: string | null;
+  pixBank: string | null;
 }
 
 /**
@@ -24,7 +25,7 @@ export interface PoolFormValues {
  */
 export function PoolForm({ initial, pixDefaults, lockNumbers, submitLabel, onSubmit }: {
   initial?: PoolFormValues;
-  pixDefaults?: Pick<PoolFormValues, 'pixKey' | 'pixName' | 'pixCity'>;
+  pixDefaults?: Pick<PoolFormValues, 'pixKey' | 'pixName' | 'pixCity' | 'pixBank'>;
   lockNumbers?: boolean;
   submitLabel: string;
   onSubmit: (v: PoolFormValues) => Promise<void>;
@@ -39,6 +40,7 @@ export function PoolForm({ initial, pixDefaults, lockNumbers, submitLabel, onSub
   const [pixKey, setPixKey] = useState(pix?.pixKey ?? '');
   const [pixName, setPixName] = useState(pix?.pixName ?? '');
   const [pixCity, setPixCity] = useState(pix?.pixCity ?? '');
+  const [pixBank, setPixBank] = useState(pix?.pixBank ?? '');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -53,6 +55,7 @@ export function PoolForm({ initial, pixDefaults, lockNumbers, submitLabel, onSub
         name, contestNumber: Number(contest), drawDate, priceCents, maxGamesPerParticipant: Number(limit),
         numbersPerGame: numbers,
         pixKey: pixKey.trim() || null, pixName: pixName.trim() || null, pixCity: pixCity.trim() || null,
+        pixBank: pixBank.trim() || null,
       });
     } catch (err) {
       setError((err as Error).message);
@@ -145,6 +148,12 @@ export function PoolForm({ initial, pixDefaults, lockNumbers, submitLabel, onSub
           <label className="label" htmlFor="pf-pixcity">Cidade</label>
           <input id="pf-pixcity" className="input" maxLength={15} required={hasKey} placeholder="Ex.: Campinas"
             value={pixCity} onChange={(e) => setPixCity(e.target.value)} />
+        </div>
+        <div className="sm:col-span-2">
+          <label className="label" htmlFor="pf-pixbank">Instituição (opcional)</label>
+          <input id="pf-pixbank" className="input" maxLength={40} placeholder="Ex.: Mercado Pago"
+            value={pixBank} onChange={(e) => setPixBank(e.target.value)} />
+          <p className="mt-1 text-xs text-slate-500">Aparece para o participante junto com o nome de quem recebe.</p>
         </div>
       </fieldset>
 
