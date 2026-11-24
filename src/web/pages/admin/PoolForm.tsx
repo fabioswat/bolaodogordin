@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
-import { MAX_GAME_NUMBERS, MIN_GAME_NUMBERS, parseMoneyToCents } from '../../../shared/rules.ts';
+import { DEFAULT_GAMES_PER_PAGE, MAX_GAMES_PER_PAGE, MAX_GAME_NUMBERS, MIN_GAME_NUMBERS, parseMoneyToCents } from '../../../shared/rules.ts';
 import { centsToInput } from '../../lib/format.ts';
 import { Alert } from '../../components/ui.tsx';
 import { parsePixPayload } from '../../../shared/pix.ts';
@@ -16,6 +16,7 @@ export interface PoolFormValues {
   pixName: string | null;
   pixCity: string | null;
   pixBank: string | null;
+  gamesPerPage: number | null;
 }
 
 /**
@@ -37,6 +38,7 @@ export function PoolForm({ initial, pixDefaults, lockNumbers, submitLabel, onSub
   const [price, setPrice] = useState(initial ? centsToInput(initial.priceCents) : '');
   const [limit, setLimit] = useState(initial ? String(initial.maxGamesPerParticipant) : '');
   const [numbers, setNumbers] = useState(initial?.numbersPerGame ?? MIN_GAME_NUMBERS);
+  const [perPage, setPerPage] = useState(initial?.gamesPerPage ? String(initial.gamesPerPage) : '');
   const [pixKey, setPixKey] = useState(pix?.pixKey ?? '');
   const [pixName, setPixName] = useState(pix?.pixName ?? '');
   const [pixCity, setPixCity] = useState(pix?.pixCity ?? '');
@@ -58,6 +60,7 @@ export function PoolForm({ initial, pixDefaults, lockNumbers, submitLabel, onSub
         numbersPerGame: numbers,
         pixKey: pixKey.trim() || null, pixName: pixName.trim() || null, pixCity: pixCity.trim() || null,
         pixBank: pixBank.trim() || null,
+        gamesPerPage: perPage.trim() === '' ? null : Number(perPage),
       });
       setSaved(true);
     } catch (err) {
@@ -133,6 +136,15 @@ export function PoolForm({ initial, pixDefaults, lockNumbers, submitLabel, onSub
             <p className="mt-1 text-xs text-slate-500">O resultado continua com 6 dezenas. Ajuste o preço por jogo conforme a tabela da Caixa.</p>
           </>
         )}
+      </div>
+
+      <div>
+        <label className="label" htmlFor="pf-perpage">Jogos por página (página inicial)</label>
+        <input id="pf-perpage" type="number" min={1} max={MAX_GAMES_PER_PAGE} className="input" placeholder={String(DEFAULT_GAMES_PER_PAGE)}
+          value={perPage} onChange={(e) => setPerPage(e.target.value)} />
+        <p className="mt-1 text-xs text-slate-500">
+          Em branco: {DEFAULT_GAMES_PER_PAGE}. Use um múltiplo dos jogos por pessoa (ex.: 12 para 3 jogos cada) para não separar os jogos de alguém.
+        </p>
       </div>
 
       <fieldset className="mt-2 grid gap-3 rounded-xl border border-slate-200 p-3 sm:col-span-2 sm:grid-cols-2">

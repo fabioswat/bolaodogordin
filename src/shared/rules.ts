@@ -5,6 +5,9 @@ export const NUMBERS_PER_GAME = 6;
 /** Quantidade de dezenas por jogo permitida na configuração do bolão (como na Mega-Sena). */
 export const MIN_GAME_NUMBERS = 6;
 export const MAX_GAME_NUMBERS = 20;
+/** Jogos por página na página inicial, quando o bolão não define outro valor. */
+export const DEFAULT_GAMES_PER_PAGE = 10;
+export const MAX_GAMES_PER_PAGE = 100;
 export const MIN_NUMBER = 1;
 export const MAX_NUMBER = 60;
 

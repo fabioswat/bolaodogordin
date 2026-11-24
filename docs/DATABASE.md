@@ -100,3 +100,4 @@ Preenchido quando o admin exclui o usuário. A conta fica inativa, com o nick re
 | pix_name | TEXT | Nome de quem recebe (até 25 caracteres) |
 | pix_city | TEXT | Cidade de quem recebe (até 15 caracteres) |
 | pix_bank | TEXT | Instituição exibida ao participante, ex.: Mercado Pago (migration 005) |
+| games_per_page | INTEGER (1–100) | Jogos por página na página inicial; vazio = 10 (migration 006) |

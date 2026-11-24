@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { PoolSummary, PublicPool } from '../lib/api.ts';
 import { get } from '../lib/api.ts';
 import { formatCents, formatDate, pad } from '../lib/format.ts';
+import { DEFAULT_GAMES_PER_PAGE } from '../../shared/rules.ts';
 import { navigate } from '../lib/router.tsx';
 import { useAuth } from '../lib/auth.tsx';
 import { Alert, Balls, EmptyState, HitsBadge, InfoTip, PoolStatusBadge, Spinner, Stat } from '../components/ui.tsx';
@@ -47,11 +48,11 @@ export function PublicPage({ poolId }: { poolId?: number }) {
     });
   }, [data, filter, filterNumbers]);
 
-  // Paginação da tabela: 10 jogos por página (o filtro busca em todos).
-  const PAGE_SIZE = 10;
-  const pageCount = Math.max(1, Math.ceil(games.length / PAGE_SIZE));
+  // Paginação da tabela: quantidade definida no bolão, padrão 10 (o filtro busca em todos).
+  const pageSize = data?.pool.gamesPerPage ?? DEFAULT_GAMES_PER_PAGE;
+  const pageCount = Math.max(1, Math.ceil(games.length / pageSize));
   const current = Math.min(page, pageCount - 1);
-  const pageGames = games.slice(current * PAGE_SIZE, (current + 1) * PAGE_SIZE);
+  const pageGames = games.slice(current * pageSize, (current + 1) * pageSize);
 
   if (error) return <Alert>{error}</Alert>;
   if (!pools) return <Spinner />;
@@ -154,7 +155,7 @@ export function PublicPage({ poolId }: { poolId?: number }) {
               <tbody>
                 {pageGames.map((g, i) => (
                   <tr key={g.code} className={g.tier ? 'bg-gold-100/60' : undefined}>
-                    <td className="text-xs text-slate-400 tabular-nums">{pad(current * PAGE_SIZE + i + 1)}</td>
+                    <td className="text-xs text-slate-400 tabular-nums">{pad(current * pageSize + i + 1)}</td>
                     <td className="font-mono text-xs font-semibold text-slate-600">{g.code}</td>
                     {showOwners && <td className="whitespace-nowrap text-sm font-semibold text-brand-900">{g.owner}</td>}
                     <td><Balls numbers={g.numbers} result={result} size="sm" highlight={hovered} /></td>
@@ -167,7 +168,7 @@ export function PublicPage({ poolId }: { poolId?: number }) {
         )}
         <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 px-4 py-2 text-xs text-slate-500">
           <span>
-            {games.length === 0 ? '0' : `${current * PAGE_SIZE + 1}–${current * PAGE_SIZE + pageGames.length}`} de {games.length} jogo(s)
+            {games.length === 0 ? '0' : `${current * pageSize + 1}–${current * pageSize + pageGames.length}`} de {games.length} jogo(s)
             {games.length !== data.games.length && ` (filtrados de ${data.games.length})`}
           </span>
           {pageCount > 1 && (

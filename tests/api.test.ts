@@ -501,3 +501,23 @@ describe('ordem da lista de jogos', () => {
     assert.ok(anonGames.every((g) => g.owner === undefined));
   });
 });
+
+describe('jogos por página', () => {
+  test('padrão vazio, valor configurado, limites e volta ao padrão', async () => {
+    const base = { name: 'Páginas', contestNumber: 9300, drawDate: '2027-04-01', priceCents: 600, maxGamesPerParticipant: 3 };
+    const p = await admin.req('POST', '/api/admin/pools', base);
+    const id = p.body.id;
+    const view = async () => (await anon.req('GET', `/api/public/pools/${id}`)).body.pool.gamesPerPage;
+    assert.equal(await view(), null);
+    assert.equal((await admin.req('PUT', `/api/admin/pools/${id}`, { ...base, gamesPerPage: 12 })).status, 200);
+    assert.equal(await view(), 12);
+    for (const bad of [0, 101, 2.5, 'abc']) {
+      assert.equal((await admin.req('PUT', `/api/admin/pools/${id}`, { ...base, gamesPerPage: bad })).status, 400);
+    }
+    assert.equal(await view(), 12);
+    assert.equal((await admin.req('PUT', `/api/admin/pools/${id}`, { ...base, gamesPerPage: null })).status, 200);
+    assert.equal(await view(), null);
+    const created = await admin.req('POST', '/api/admin/pools', { ...base, contestNumber: 9301, gamesPerPage: 15 });
+    assert.equal(created.body.gamesPerPage, 15);
+  });
+});

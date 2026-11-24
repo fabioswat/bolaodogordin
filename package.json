@@ -1,6 +1,6 @@
 {
   "name": "bolao-da-virada",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "private": true,
   "type": "module",
   "description": "Sistema web simples para gerenciar bolÃµes da Mega-Sena.",

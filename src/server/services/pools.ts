@@ -21,6 +21,8 @@ export interface PoolInput {
   pixCity: string | null;
   /** Instituição de quem recebe (só exibição). */
   pixBank: string | null;
+  /** Jogos por página na página inicial; null = padrão (10). */
+  gamesPerPage: number | null;
 }
 
 export interface Pool extends PoolInput {
@@ -45,6 +47,7 @@ function mapPool(r: Record<string, unknown>): Pool {
     pixName: r.pix_name ? String(r.pix_name) : null,
     pixCity: r.pix_city ? String(r.pix_city) : null,
     pixBank: r.pix_bank ? String(r.pix_bank) : null,
+    gamesPerPage: r.games_per_page ? Number(r.games_per_page) : null,
     status: r.status as PoolStatus,
     result: r.result_numbers ? parseCombination(String(r.result_numbers)) : null,
     resultRegisteredAt: r.result_registered_at ? String(r.result_registered_at) : null,
@@ -86,9 +89,9 @@ export function createPool(db: DB, actorId: number, input: PoolInput, status: Po
   const t = now();
   return transaction(db, () => {
     const res = db.prepare(`INSERT INTO pools (name, contest_number, draw_date, price_cents, max_games_per_participant,
-        numbers_per_game, pix_key, pix_name, pix_city, pix_bank, status, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(input.name, input.contestNumber, input.drawDate, input.priceCents,
-      input.maxGamesPerParticipant, input.numbersPerGame, input.pixKey, input.pixName, input.pixCity, input.pixBank, status, t, t);
+        numbers_per_game, pix_key, pix_name, pix_city, pix_bank, games_per_page, status, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(input.name, input.contestNumber, input.drawDate, input.priceCents,
+      input.maxGamesPerParticipant, input.numbersPerGame, input.pixKey, input.pixName, input.pixCity, input.pixBank, input.gamesPerPage, status, t, t);
     const pool = getPool(db, Number(res.lastInsertRowid));
     audit(db, { actorId, poolId: pool.id, action: 'pool.created', entityType: 'pool', entityId: pool.id, after: { ...input, status } });
     return pool;
@@ -103,9 +106,9 @@ export function updatePool(db: DB, actorId: number, poolId: number, input: PoolI
       if (games > 0) throw conflict('Não é possível mudar a quantidade de dezenas: o bolão já tem jogos cadastrados.');
     }
     db.prepare(`UPDATE pools SET name = ?, contest_number = ?, draw_date = ?, price_cents = ?, max_games_per_participant = ?,
-        numbers_per_game = ?, pix_key = ?, pix_name = ?, pix_city = ?, pix_bank = ?, updated_at = ?
+        numbers_per_game = ?, pix_key = ?, pix_name = ?, pix_city = ?, pix_bank = ?, games_per_page = ?, updated_at = ?
       WHERE id = ?`).run(input.name, input.contestNumber, input.drawDate, input.priceCents, input.maxGamesPerParticipant,
-      input.numbersPerGame, input.pixKey, input.pixName, input.pixCity, input.pixBank, now(), poolId);
+      input.numbersPerGame, input.pixKey, input.pixName, input.pixCity, input.pixBank, input.gamesPerPage, now(), poolId);
     const after = getPool(db, poolId);
     audit(db, { actorId, poolId, action: 'pool.updated', entityType: 'pool', entityId: poolId,
       before: pick(before), after: pick(after) });
@@ -116,7 +119,7 @@ export function updatePool(db: DB, actorId: number, poolId: number, input: PoolI
 function pick(p: Pool): PoolInput {
   return { name: p.name, contestNumber: p.contestNumber, drawDate: p.drawDate, priceCents: p.priceCents,
     maxGamesPerParticipant: p.maxGamesPerParticipant, numbersPerGame: p.numbersPerGame,
-    pixKey: p.pixKey, pixName: p.pixName, pixCity: p.pixCity, pixBank: p.pixBank };
+    pixKey: p.pixKey, pixName: p.pixName, pixCity: p.pixCity, pixBank: p.pixBank, gamesPerPage: p.gamesPerPage };
 }
 
 export function setPoolStatus(db: DB, actorId: number, poolId: number, status: PoolStatus): Pool {
@@ -257,6 +260,7 @@ export function publicPoolView(db: DB, poolId: number, showOwners = false) {
       priceCents: pool.priceCents,
       maxGamesPerParticipant: pool.maxGamesPerParticipant,
       numbersPerGame: pool.numbersPerGame,
+      gamesPerPage: pool.gamesPerPage,
       status: pool.status,
       result: pool.result,
     },

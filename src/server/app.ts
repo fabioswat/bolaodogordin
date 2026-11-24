@@ -20,7 +20,7 @@ import {
 import { createGame, deleteGame, listPoolGamesAdmin, listUserGames, updateGame } from './services/games.ts';
 import { listPoolAudit } from './services/audit.ts';
 import { INVITE_MAX_DAYS, acceptInvite, createInvite, inviteInfo, listInvites, revokeInvite } from './services/invites.ts';
-import { MAX_GAME_NUMBERS, MIN_GAME_NUMBERS, paymentStatus } from '../shared/rules.ts';
+import { MAX_GAMES_PER_PAGE, MAX_GAME_NUMBERS, MIN_GAME_NUMBERS, paymentStatus } from '../shared/rules.ts';
 import { buildPixPayload, normalizePixKey } from '../shared/pix.ts';
 
 declare module 'fastify' {
@@ -266,6 +266,9 @@ export async function buildApp(opts: AppOptions): Promise<FastifyInstance> {
       numbersPerGame: b.numbersPerGame === undefined ? MIN_GAME_NUMBERS
         : int(b, 'numbersPerGame', 'a quantidade de dezenas por jogo', MIN_GAME_NUMBERS, MAX_GAME_NUMBERS),
       pixKey, pixName, pixCity, pixBank,
+      // Vazio = padrão (10 por página).
+      gamesPerPage: b.gamesPerPage === undefined || b.gamesPerPage === null || b.gamesPerPage === '' ? null
+        : int(b, 'gamesPerPage', 'a quantidade de jogos por página', 1, MAX_GAMES_PER_PAGE),
     };
   };
   const poolId = (req: FastifyRequest) => idParam((req.params as { id: string }).id);

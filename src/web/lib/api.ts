@@ -79,7 +79,7 @@ export interface PublicGame {
 }
 
 export interface PublicPool {
-  pool: PoolSummary & { priceCents: number; maxGamesPerParticipant: number; numbersPerGame: number; result: number[] | null };
+  pool: PoolSummary & { priceCents: number; maxGamesPerParticipant: number; numbersPerGame: number; gamesPerPage: number | null; result: number[] | null };
   stats: PoolStats;
   tiers: { quadra: number; quina: number; sena: number };
   showOwners: boolean;
@@ -118,6 +118,7 @@ export interface AdminPool extends PoolSummary {
   pixName: string | null;
   pixCity: string | null;
   pixBank: string | null;
+  gamesPerPage: number | null;
   result: number[] | null;
   resultRegisteredAt: string | null;
   stats: PoolStats;

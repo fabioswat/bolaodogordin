@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.4.1 — Jogos por página
+- Configurações do bolão: quantidade de jogos por página na página inicial (1 a 100; em branco = 10).
+
 ## 1.4.0 — Pix, dezenas por bolão, surpresinha e paginação
 - Pagamento via Pix: o admin cadastra chave, nome e cidade no bolão; em "Meus jogos" o participante vê QR Code e Pix copia e cola com o valor exato que falta pagar (BR Code estático, padrão do Banco Central). A confirmação continua manual. No campo da chave dá para colar um Pix copia e cola (ex.: do Mercado Pago): chave, nome e cidade são preenchidos sozinhos. O cartão mostra só o valor, quem recebe e a instituição (campo opcional), o QR Code e o copia e cola.
 - Dezenas por jogo configuráveis por bolão (6 a 20); só pode mudar enquanto não houver jogos. O resultado continua com 6 dezenas.
